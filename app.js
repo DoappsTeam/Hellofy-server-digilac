@@ -52,6 +52,7 @@ var skipToQueryReq = function(string) {
  * pathURL : /search?q=keyword -> Should be a `q`
  * query   : q=keyword
  * queryObj: {q: keyword}
+ * g: google, l: link, w: wikipedia
  */
 route.for('GET', '/search', function(req, res) {
   var pathURL = req.url;
@@ -62,8 +63,8 @@ route.for('GET', '/search', function(req, res) {
   console.log("--->>>>", queryString);
   console.log("--->>>>", queryObj);
   res.writeHead(200, {"Content-Type": "text/html"});
-  if(queryObj['q'] != undefined) {
-    google(queryObj['q'], function(err, next, links) {
+  if(queryObj['g'] != undefined) {
+    google(queryObj['g'], function(err, next, links) {
       if(err) console.error(err);
       for(var i = 0; i < links.length; i++) {
         res.write(links[i].title + '-' + links[i].link);
