@@ -78,7 +78,7 @@ route.for('GET', '/search', function(req, res) {
     });
   } else if(queryObj['l'] != undefined) {
     read(queryObj['l'], function(err, article, meta) {
-      res.write(article.content);
+      res.write(article.html);
       article.close();
       res.end();
     });
