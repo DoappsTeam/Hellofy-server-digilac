@@ -62,15 +62,13 @@ route.for('GET', '/search', function(req, res) {
   var queryString = skipToQueryReq(pathURL);
   var queryObj = qs.parse(queryString);
 
-  res.writeHead(200, {"Content-Type": "application/json",'charset':'utf-8'});
+  res.writeHead(200, {"Content-Type": "application/json ",'charset':'utf-8'});
   if(queryObj['g'] != undefined) {
     google(queryObj['g'], function(err, next, links) {
       if(err) console.error(err);
       var linksObj = [];
       for(var i = 0; i < links.length; i++) {
         linksObj.push(links[i]);
-        //res.write(links[i].title + '-' + links[i].link);
-        //res.write(links[i].description + '\n');
       }
       if(nextCounter < 4) {
         nextCounter += 1;
@@ -81,7 +79,7 @@ route.for('GET', '/search', function(req, res) {
     });
   } else if(queryObj['l'] != undefined) {
     read(queryObj['l'], function(err, article, meta) {
-      res.write(article.html);
+      res.write(article.content);
       article.close();
       res.end();
     });
