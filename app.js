@@ -11,6 +11,10 @@ var bot = require('nodemw');
 google.resultsPerPage = 25;
 var nextCounter = 0;
 
+google.lang = 'es'
+google.tld = 'es'
+google.nextText = 'Weiter'
+
 var client = new bot({
   server: 'es.wikipedia.org',
   path: '/w',
@@ -26,7 +30,6 @@ var route = {
 
 function onRequest(req, res) {
   var pathname = url.parse(req.url).pathname;
-  console.log(req.method, req.url, pathname);
   if(typeof route.routes[req.method + pathname] === 'function') {
     route.routes[req.method + pathname](req, res);
   } else {
@@ -39,7 +42,7 @@ var serveStatic = function(res, file) {
   var fileToServe = path.join(__dirname, file);
   var stream = fs.createReadStream(fileToServe);
   stream.pipe(res);
-}
+} 
 
 var skipToQueryReq = function(string) {
   var first = string.search(/\?/);
@@ -59,21 +62,21 @@ route.for('GET', '/search', function(req, res) {
   var queryString = skipToQueryReq(pathURL);
   var queryObj = qs.parse(queryString);
 
-  console.log("--->>>>", pathURL);
-  console.log("--->>>>", queryString);
-  console.log("--->>>>", queryObj);
-  res.writeHead(200, {"Content-Type": "text/html"});
+  res.writeHead(200, {"Content-Type": "application/json",'charset':'utf-8'});
   if(queryObj['g'] != undefined) {
     google(queryObj['g'], function(err, next, links) {
       if(err) console.error(err);
+      var linksObj = [];
       for(var i = 0; i < links.length; i++) {
-        res.write(links[i].title + '-' + links[i].link);
-        res.write(links[i].description + '\n');
+        linksObj.push(links[i]);
+        //res.write(links[i].title + '-' + links[i].link);
+        //res.write(links[i].description + '\n');
       }
       if(nextCounter < 4) {
         nextCounter += 1;
         if(next) next();
       }
+      res.write(JSON.stringify(linksObj));
       res.end();
     });
   } else if(queryObj['l'] != undefined) {
