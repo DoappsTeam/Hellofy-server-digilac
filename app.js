@@ -5,6 +5,17 @@ var http = require('http');
 var url = require('url');
 var read = require('node-readability');
 var qs = require('querystring');
+var google = require('google');
+var bot = require('nodemw');
+
+google.resultsPerPage = 25;
+var nextCounter = 0;
+
+var client = new bot({
+  server: 'es.wikipedia.org',
+  path: '/w',
+  debug: false
+});
 
 var route = {
   routes: {},
@@ -44,13 +55,41 @@ var skipToQueryReq = function(string) {
  */
 route.for('GET', '/search', function(req, res) {
   var pathURL = req.url;
-  var query = skipToQueryReq(pathURL);
-  var queryObj = qs.parse(query);
-  console.log("--->", query);
-  console.log("--->", queryObj);
-  res.writeHead(200, {"Content-Type": "text/plain"});
-  res.write("Halo");
-  res.end();
+  var queryString = skipToQueryReq(pathURL);
+  var queryObj = qs.parse(queryString);
+
+  console.log("--->>>>", pathURL);
+  console.log("--->>>>", queryString);
+  console.log("--->>>>", queryObj);
+  res.writeHead(200, {"Content-Type": "text/html"});
+  if(queryObj['q'] != undefined) {
+    google(queryObj['q'], function(err, next, links) {
+      if(err) console.error(err);
+      for(var i = 0; i < links.length; i++) {
+        res.write(links[i].title + '-' + links[i].link);
+        res.write(links[i].description + '\n');
+      }
+      if(nextCounter < 4) {
+        nextCounter += 1;
+        if(next) next();
+      }
+      res.end();
+    });
+  } else if(queryObj['l'] != undefined) {
+    read(queryObj['l'], function(err, article, meta) {
+      res.write(article.content);
+      article.close();
+      res.end();
+    });
+  } else if(queryObj['w'] != undefined) {
+    client.getArticle(queryObj['w'], function(err, data) {
+      if(err) {
+        console.log(err);
+      }
+      res.write(data);
+      res.end();
+    });
+  }
 });
 
 /*
@@ -60,5 +99,5 @@ route.for('GET', '/aux', function(req, res) {
   serveStatic(res, 'index.html');
 });
 
-http.createServer(onRequest).listen(80);
-console.log("Server started on port 80");
+http.createServer(onRequest).listen(8080);
+console.log("Server started on port 8080");
